@@ -1,0 +1,6 @@
+[submodule "inventory-service"]
+	path = inventory-service
+	url = https://github.com/Bareeraq/springboot-inventory-service.git
+[submodule "booking-service"]
+	path = booking-service
+	url = https://github.com/Bareeraq/springboot-booking-service.git
