@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Builder
 public class BookingEvent {
     private Long userId;
-    private Long EventId;
+    private Long eventId;
     private Long ticketCount;
     private BigDecimal totalPrice;
 }
