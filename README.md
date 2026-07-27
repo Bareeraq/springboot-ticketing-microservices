@@ -243,4 +243,5 @@ Each module is a standalone Maven project with its own `pom.xml` and Maven wrapp
 - CI pipeline for build/test across all four modules
 
 ## License
-MIT
+
+Apache License 2.0
