@@ -4,6 +4,7 @@ import com.example.micserv.inventoryservice.response.EventInventoryResponse;
 import com.example.micserv.inventoryservice.response.VenueInventoryResponse;
 import com.example.micserv.inventoryservice.service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,10 +36,13 @@ public class InventoryController {
         return inventoryService.getEventInventory(eventId);
     }
 
-    @PutMapping("/inventory/event/{eventId}/capacity/{capacity}")
-    public ResponseEntity<Void> updateEventCapacity(@PathVariable("eventId") Long eventId,
-                                                    @PathVariable("capacity") Long ticketsBooked){
-        inventoryService.updateEventCapacity(eventId, ticketsBooked);
+    @PutMapping("/inventory/event/{eventId}/reserve/{ticketCount}")
+    public ResponseEntity<Void> reserveCapacity(@PathVariable("eventId") Long eventId,
+                                                @PathVariable("ticketCount") Long ticketCount) {
+        boolean reserved = inventoryService.reserveCapacity(eventId, ticketCount);
+        if (!reserved) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409 = not enough seats
+        }
         return ResponseEntity.ok().build();
     }
 }

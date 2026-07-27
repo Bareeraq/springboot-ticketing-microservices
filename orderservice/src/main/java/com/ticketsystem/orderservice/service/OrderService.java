@@ -1,7 +1,6 @@
 package com.ticketsystem.orderservice.service;
 
 import com.ticketsystem.bookingservice.event.BookingEvent;
-import com.ticketsystem.orderservice.client.InventoryServiceClient;
 import com.ticketsystem.orderservice.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +13,10 @@ import com.ticketsystem.orderservice.entity.Order;
 public class OrderService {
 
     private OrderRepository orderRepository;
-    private InventoryServiceClient inventoryServiceClient;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository,
-                        InventoryServiceClient inventoryServiceClient){
+    public OrderService(OrderRepository orderRepository){
         this.orderRepository = orderRepository;
-        this.inventoryServiceClient = inventoryServiceClient;
     }
 
     @KafkaListener(topics= "booking", groupId = "order-service")
@@ -30,9 +26,6 @@ public class OrderService {
         //CREATE ORDER OBJ FOR DB
         Order order = createOrder(bookingEvent);
         orderRepository.saveAndFlush(order);
-        //UPDATE INVENTORY
-        inventoryServiceClient.updateInventory(order.getEventId(), order.getTicketCount());
-        log.info("Inventory updated for event: {}, less tickets:{}", order.getEventId(), order.getTicketCount());
     }
 
     private Order createOrder(BookingEvent bookingEvent){

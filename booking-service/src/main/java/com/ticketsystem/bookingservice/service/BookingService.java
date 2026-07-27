@@ -32,24 +32,23 @@ public class BookingService {
     }
 
     public BookingResponse createBooking(final BookingRequest request){
-        //check if user exists
         final Customer customer = customerRepository.findById(request.getUserId()).orElse(null);
         if(customer == null){
             throw new RuntimeException("User not found");
         }
-        //check if there's enough inventory
+
         final InventoryResponse inventoryResponse = inventoryServiceClient.getInventory(request.getEventId());
         log.info("Inventory Response: {}", inventoryResponse);
-        if(inventoryResponse.getCapacity() < request.getTicketCount()) {
+
+        boolean reserved = inventoryServiceClient.reserveCapacity(request.getEventId(), request.getTicketCount());
+        if (!reserved) {
             throw new RuntimeException("Not enough inventory");
         }
 
-        //create booking
         final BookingEvent bookingEvent = createBookingEvent(request, customer, inventoryResponse);
-
-        //send booking to Order service on a Kafka topic:
         kafkaTemplate.send("booking", bookingEvent);
         log.info("Booking sent to Kafka: {}", bookingEvent);
+
         return BookingResponse.builder()
                 .userId(bookingEvent.getUserId())
                 .eventId(bookingEvent.getEventId())
