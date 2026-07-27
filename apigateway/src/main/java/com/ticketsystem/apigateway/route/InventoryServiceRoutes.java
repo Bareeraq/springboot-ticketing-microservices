@@ -1,6 +1,7 @@
 package com.ticketsystem.apigateway.route;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,8 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import java.net.URI;
+
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setPath;
 
 @Configuration
 public class InventoryServiceRoutes {
@@ -29,5 +32,15 @@ public class InventoryServiceRoutes {
         String value = request.pathVariable(pathVariable);
         MvcUtils.setRequestUrl(request, URI.create(baseUrl + value));
         return HandlerFunctions.http().handle(request);
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> inventoryServiceApiDocs() {
+        return GatewayRouterFunctions.route("inventory-service-api-docs")
+                .route(RequestPredicates.path("/docs/inventoryservice/v3/api-docs"),
+                        HandlerFunctions.http())
+                .before(BeforeFilterFunctions.uri("http://localhost:8080"))
+                .before(setPath("v3/api-docs"))
+                .build();
     }
 }
