@@ -1,4 +1,4 @@
-# Springboot Ticketing Microservices
+# Ticket Booking Platform
 
 A backend system for booking event tickets — think concerts, matches, shows. It handles the core problem any ticketing platform has to solve: don't sell the same seat twice, calculate prices correctly, and make sure every booking turns into a real, persisted order.
 
