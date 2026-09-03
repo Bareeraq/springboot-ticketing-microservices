@@ -21,9 +21,9 @@ public class InventoryServiceRoutes {
     public RouterFunction<ServerResponse> inventoryRoutes() {
         return GatewayRouterFunctions.route("inventory-service")
                 .route(RequestPredicates.path("/api/v1/inventory/venue/{venueId}"),
-                        request -> forwardWithPathVariable(request, "venueId", "http://localhost:8080/api/v1/inventory/venue/"))
+                        request -> forwardWithPathVariable(request, "venueId", "http://inventory-service:8080/api/v1/inventory/venue/"))
                 .route(RequestPredicates.path("/api/v1/inventory/event/{eventId}"),
-                        request -> forwardWithPathVariable(request, "eventId", "http://localhost:8080/api/v1/inventory/event/"))
+                        request -> forwardWithPathVariable(request, "eventId", "http://inventory-service:8080/api/v1/inventory/event/"))
                 .build();
     }
     private static ServerResponse forwardWithPathVariable(ServerRequest request,
@@ -39,8 +39,17 @@ public class InventoryServiceRoutes {
         return GatewayRouterFunctions.route("inventory-service-api-docs")
                 .route(RequestPredicates.path("/docs/inventoryservice/v3/api-docs"),
                         HandlerFunctions.http())
-                .before(BeforeFilterFunctions.uri("http://localhost:8080"))
+                .before(BeforeFilterFunctions.uri("http://inventory-service:8080"))
                 .before(setPath("v3/api-docs"))
+                .build();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> inventoryEventsListRoute() {
+        return GatewayRouterFunctions.route("inventory-service-events-list")
+                .route(RequestPredicates.GET("/api/v1/inventory/events"),
+                        HandlerFunctions.http())
+                .before(BeforeFilterFunctions.uri("http://inventory-service:8080"))
                 .build();
     }
 }

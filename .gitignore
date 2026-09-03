@@ -1,6 +1,12 @@
-
 .idea/
 target/
 *.iml
 .mvn/
 !.mvn/wrapper/maven-wrapper.jar
+.env
+*/.env
+volume-data/
+*/volume-data/
+*.log
+*-log.txt
+.secrets.baseline

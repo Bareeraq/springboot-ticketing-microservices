@@ -12,6 +12,11 @@ services:
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
       - db-data:/var/lib/mysql
       - db-data:/var/log/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -50,19 +55,6 @@ services:
       KAFKA_CLUSTERS_BOOTSTRAPSERVERS: kafka-broker:29092
       DYNAMIC_CONFIG_ENABLED: 'true'
 
-  kafka-schema-registry:
-    image: confluentinc/cp-schema-registry:7.5.0
-    hostname: kafka-schema-registry
-    container_name: kafka-schema-registry
-    depends_on:
-      - kafka-broker
-    ports:
-      - "8083:8081"
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-broker:29092'
-      SCHEMA_REGISTRY_LISTENERS: http://kafka-schema-registry:8081
-
   keycloak-db:
     container_name: keycloak-mysql
     image: mysql:8.3.0
@@ -92,5 +84,78 @@ services:
       - ./docker/keycloak/realms/:/opt/keycloak/data/import/
     depends_on:
       - keycloak-db
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    depends_on:
+      keycloak:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      kafka-broker:
+        condition: service_started
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KAFKA_BOOTSTRAP: kafka-broker:29092
+      KEYCLOAK_HOST: keycloak
+      KEYCLOAK_PORT: "8080"
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka-broker:
+        condition: service_started
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KAFKA_BOOTSTRAP: kafka-broker:29092
+      INVENTORY_SERVICE_URL: http://inventory-service:8080/api/v1/inventory
+
+  orderservice:
+    build: ./orderservice
+    container_name: orderservice
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka-broker:
+        condition: service_started
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KAFKA_BOOTSTRAP: kafka-broker:29092
+
+  apigateway:
+    build: ./apigateway
+    container_name: apigateway
+    ports:
+      - "8090:8090"
+    depends_on:
+      keycloak:
+        condition: service_started
+      kafka-broker:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_HOST: keycloak
+      KEYCLOAK_PORT: "8080"
+
 volumes:
   db-data:

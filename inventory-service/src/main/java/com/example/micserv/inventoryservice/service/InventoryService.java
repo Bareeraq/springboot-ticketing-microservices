@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,14 +33,18 @@ public class InventoryService {
         final List<Event> events = eventRepository.findAll();
 
         return events.stream().map(event -> EventInventoryResponse.builder()
+                .eventId(event.getId())
                 .event(event.getName())
                 .capacity(event.getLeft_capacity())
                 .venue(event.getVenue())
+                .ticketPrice(event.getTicketPrice())
                 .build()).collect(Collectors.toList());
     }
 
     public VenueInventoryResponse getVenueInformation(final Long venueId){
-        final Venue venue = venueRepository.findById(venueId).orElse(null);
+        final Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Venue not found with id: " + venueId));
 
         return VenueInventoryResponse.builder()
                 .venueId(venue.getId())
@@ -48,7 +54,9 @@ public class InventoryService {
     }
 
     public EventInventoryResponse getEventInventory(final Long eventId){
-        final Event event = eventRepository.findById(eventId).orElse(null);
+        final Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Event not found with id: " + eventId));
 
         return EventInventoryResponse.builder()
                 .event(event.getName())

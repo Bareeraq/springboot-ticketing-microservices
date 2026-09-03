@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class InventoryController {
         return inventoryService.getEventInventory(eventId);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/inventory/event/{eventId}/reserve/{ticketCount}")
     public ResponseEntity<Void> reserveCapacity(@PathVariable("eventId") Long eventId,
                                                 @PathVariable("ticketCount") Long ticketCount) {

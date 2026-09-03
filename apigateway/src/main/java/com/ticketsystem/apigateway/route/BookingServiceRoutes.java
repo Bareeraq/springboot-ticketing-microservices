@@ -24,7 +24,7 @@ public class BookingServiceRoutes {
     public RouterFunction<ServerResponse> bookingRoutes() {
         return GatewayRouterFunctions.route("booking-service")
                 .route(RequestPredicates.POST("/api/v1/booking"), http())
-                .before(uri("http://localhost:8081"))
+                .before(uri("http://booking-service:8081"))
                 .filter(CircuitBreakerFilterFunctions.circuitBreaker("bookingServiceCircuitBreaker",
                         URI.create("forward:/fallbackRoute")))
                 .build();
@@ -44,7 +44,7 @@ public class BookingServiceRoutes {
         return GatewayRouterFunctions.route("booking-service-api-docs")
                 .route(RequestPredicates.path("/docs/bookingservice/v3/api-docs"),
                         HandlerFunctions.http())
-                .before(BeforeFilterFunctions.uri("http://localhost:8081"))
+                .before(BeforeFilterFunctions.uri("http://booking-service:8081"))
                 .before(setPath("v3/api-docs"))
                 .build();
     }
