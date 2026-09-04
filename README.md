@@ -9,7 +9,7 @@ It's built as four separate Spring Boot services instead of one monolith: a gate
 - [Architecture](#architecture)
 - [Services](#services)
 - [Tech Stack](#tech-stack)
-- [Booking Flow](#booking-flow)
+- [Booking Flow](#what-happens-when-someone-books-a-ticket)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
@@ -20,38 +20,7 @@ It's built as four separate Spring Boot services instead of one monolith: a gate
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Client([Client])
-
-    subgraph Edge
-        GW[API Gateway<br/>:8090]
-        KC[(Keycloak<br/>:8091)]
-    end
-
-    subgraph Services
-        BS[Booking Service<br/>:8081]
-        IS[Inventory Service<br/>:8080]
-        OS[Order Service<br/>:8082]
-    end
-
-    K[(Kafka<br/>:9092)]
-    DB[(MySQL<br/>:3307)]
-
-    Client -->|JWT| GW
-    GW -->|validates token| KC
-    GW -->|/api/v1/booking| BS
-    GW -->|/api/v1/inventory/**| IS
-
-    BS -->|GET event inventory| IS
-    BS -->|publish booking event| K
-    K -->|consume booking event| OS
-    OS -->|PUT update capacity| IS
-
-    BS --- DB
-    IS --- DB
-    OS --- DB
-```
+![Architecture diagram](docs/images/ticketing_platform_architecture.png)
 
 Each service owns its own logical tables in a shared MySQL instance (development setup) and can be split into per-service databases for production. The **Booking Service** and **Order Service** are decoupled through Kafka: a booking request is validated and published as an event, and the **Order Service** asynchronously persists the order and reconciles inventory.
 
